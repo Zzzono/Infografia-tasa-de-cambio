@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es" data-theme="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tasa media e instantánea de cambio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EDF2F0;--card:#FFFFFF;--ink:#14283A;--mute:#52667A;--line:#C9D6D3;--curve:#0C7C86;--sec:#E4572E;--tan:#6A4BC2;--soft:#DDEAE8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1C26;--card:#172A38;--ink:#E6F0F2;--mute:#9DB3BF;--line:#2B4151;--curve:#3CC4CF;--sec:#FF8059;--tan:#A58DFF;--soft:#1F3647}}
+:root[data-theme="dark"]{--bg:#0F1C26;--card:#172A38;--ink:#E6F0F2;--mute:#9DB3BF;--line:#2B4151;--curve:#3CC4CF;--sec:#FF8059;--tan:#A58DFF;--soft:#1F3647}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 "IBM Plex Sans",system-ui,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 40px}
+h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.1;margin:0}
+h1{font-size:clamp(28px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-width:18ch}
+.lead{color:var(--mute);max-width:62ch;margin:12px 0 20px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.tabs button{font:500 15px "IBM Plex Sans",sans-serif;padding:9px 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--tan);outline-offset:2px}
+.main{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
+@media(max-width:820px){.main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card h2{font-size:20px;margin-bottom:4px}
+.sub{color:var(--mute);font-size:14px;margin:0 0 8px}
+svg{width:100%;height:auto;display:block;touch-action:manipulation;cursor:crosshair}
+.ax text{fill:var(--mute);font:12px "IBM Plex Sans",sans-serif}
+.grid line{stroke:var(--line);stroke-width:1}
+#curve{fill:none;stroke:var(--curve);stroke-width:3.5;stroke-linecap:round}
+#secant{stroke:var(--sec);stroke-width:2.5}
+#tangent{stroke:var(--tan);stroke-width:2.5;stroke-dasharray:7 5}
+#tri{fill:none;stroke:var(--sec);stroke-width:1.5;stroke-dasharray:3 3}
+.lbl{font:600 12px "IBM Plex Sans",sans-serif}
+.ctl{display:grid;gap:10px;margin-top:10px}
+.ctl label{display:flex;justify-content:space-between;font-size:14px;color:var(--mute)}
+.ctl b{color:var(--ink);font-weight:500}
+input[type=range]{width:100%;accent-color:var(--curve);height:28px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:500 15px "IBM Plex Sans",sans-serif;padding:10px 18px;border-radius:10px;border:0;background:var(--sec);color:#fff;cursor:pointer}
+.btn.alt{background:var(--soft);color:var(--ink)}
+.big{display:flex;gap:10px;margin-bottom:12px}
+.big div{flex:1;border-radius:12px;padding:12px;background:var(--soft)}
+.big small{display:block;color:var(--mute);font-size:13px}
+.big strong{font:800 26px "Bricolage Grotesque",sans-serif;display:block;line-height:1.1;margin-top:2px}
+.big .s strong{color:var(--sec)}.big .t strong{color:var(--tan)}
+.big em{font-style:normal;font-size:13px;color:var(--mute)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:right;padding:5px 4px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mute);font-weight:500}
+tr.last td{font-weight:600;color:var(--tan)}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+@media(max-width:820px){.three{grid-template-columns:1fr}}
+.three .card h3{font-size:18px;margin-bottom:8px}
+.three p{margin:0 0 8px;font-size:15px}
+.three .ctl{margin-top:4px}
+.res{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:6px 0;border-top:1px solid var(--line)}
+.res b{font-weight:600}
+.dec{border-left:5px solid var(--curve);padding:8px 12px;background:var(--soft);border-radius:0 10px 10px 0;font-weight:500}
+.formula{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:15px}
+@media(max-width:820px){.formula{grid-template-columns:1fr}}
+.formula code{display:block;font:500 17px "IBM Plex Sans",sans-serif;margin:6px 0;color:var(--ink)}
+.pop{animation:pop .5s ease}
+@keyframes pop{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cómo cambia lo que importa en tu profesión</h1>
+  <p class="lead">Elige tu campo, mueve el punto sobre la gráfica y acerca el segundo punto al primero. Verás cómo la tasa media de cambio se convierte en la tasa instantánea, y qué te permite analizar, predecir y decidir.</p>
+
+  <div class="tabs" id="tabs" role="group" aria-label="Campo profesional"></div>
+
+  <div class="main">
+    <div class="card">
+      <h2 id="ttl"></h2>
+      <p class="sub" id="sub">Toca la gráfica para mover el punto A.</p>
+      <svg id="svg" viewBox="0 0 640 380" role="img" aria-label="Gráfica de la función con recta secante y recta tangente"></svg>
+      <div class="ctl">
+        <label for="a">Punto A (<span id="xn"></span>) <b id="av"></b></label>
+        <input type="range" id="a" min="0" max="1000" value="250">
+        <label for="h">Separación h entre A y B <b id="hv"></b></label>
+        <input type="range" id="h" min="0" max="1000" value="700">
+        <div class="row">
+          <button class="btn" id="play">▶ Acercar B hacia A</button>
+          <button class="btn alt" id="reset">Reiniciar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="big">
+        <div class="s"><small>Tasa media (secante)</small><strong id="tmc"></strong><em id="tmcu"></em></div>
+        <div class="t"><small>Tasa instantánea (tangente)</small><strong id="tic"></strong><em id="ticu"></em></div>
+      </div>
+      <h3 style="font-size:16px;margin-bottom:6px">¿Qué pasa cuando h se reduce?</h3>
+      <table>
+        <thead><tr><th>h</th><th>Tasa media</th><th>Distancia a la instantánea</th></tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="three">
+    <div class="card"><h3>Analizar</h3><p id="ana"></p></div>
+    <div class="card"><h3>Predecir</h3>
+      <p id="pre"></p>
+      <div class="ctl"><label for="d">Mirar hacia adelante <b id="dv"></b></label><input type="range" id="d" min="0" max="100" value="40"></div>
+      <div class="res"><span>Predicción con la tangente</span><b id="pp"></b></div>
+      <div class="res"><span>Valor real</span><b id="pr"></b></div>
+      <div class="res"><span>Error</span><b id="pe"></b></div>
+    </div>
+    <div class="card"><h3>Decidir</h3><p id="dec1"></p><div class="dec" id="dec"></div></div>
+  </div>
+
+  <div class="formula">
+    <div class="card"><h3>Tasa media de cambio</h3><code>TMC = [f(b) − f(a)] / (b − a)</code>Pendiente de la recta secante: cuánto cambió, en promedio, entre dos momentos.</div>
+    <div class="card"><h3>Tasa instantánea de cambio</h3><code>f′(a) = lím<sub>h→0</sub> [f(a+h) − f(a)] / h</code>Pendiente de la recta tangente: cuánto cambia justo en este instante.</div>
+  </div>
+</div>
+
+<script>
+const E=(i)=>document.getElementById(i);
+const fm=(v,d=2)=>v.toLocaleString('es',{minimumFractionDigits:d,maximumFractionDigits:d});
+const SC=[
+{k:'Ingeniería',t:'Distancia recorrida por un tren de carga al frenar',xn:'tiempo',xu:'s',yn:'distancia',yu:'m',ru:'m/s',x0:0,x1:10,a:2,h:3,
+ f:t=>3*t*t-0.2*t**3,
+ ana:(m,i)=>`El tren avanzó en promedio ${fm(m)} m/s en el intervalo elegido. Justo en A su velocidad real es ${fm(i)} m/s. La diferencia aparece porque la velocidad cambia mientras avanza.`,
+ pre:'Si conoces la velocidad en este instante, puedes estimar dónde estará el tren poco después.',
+ dec:i=>i>0.5?`Aún va a ${fm(i)} m/s: programa la señal de frenado antes de este punto.`:'Casi no avanza: es seguro habilitar el paso de mantenimiento.'},
+{k:'Salud',t:'Concentración de un fármaco en sangre',xn:'tiempo',xu:'h',yn:'concentración',yu:'mg/L',ru:'mg/L por h',x0:0,x1:10,a:1,h:3,
+ f:t=>12*t*Math.exp(-t/2.5),
+ ana:(m,i)=>`En promedio la concentración cambió ${fm(m)} mg/L por hora en el intervalo. En A, el cambio instantáneo es ${fm(i)} mg/L por hora: ${i>0.05?'el fármaco sigue absorbiéndose':i<-0.05?'el cuerpo ya lo elimina':'es el punto de máxima concentración'}.`,
+ pre:'La tasa instantánea te dice cuánto subirá o bajará el nivel en la próxima hora.',
+ dec:i=>i>0.3?'La concentración aún sube: no administres otra dosis, espera el pico.':i<-0.3?'El nivel baja: planea la siguiente dosis antes de salir del rango terapéutico.':'Estás en el pico: vigila signos de toxicidad.'},
+{k:'Negocios',t:'Ventas acumuladas de un producto nuevo',xn:'tiempo',xu:'meses',yn:'unidades',yu:'u',ru:'u por mes',x0:0,x1:10,a:3,h:3,
+ f:m=>1000/(1+Math.exp(-(m-5)*0.8)),
+ ana:(m,i)=>`Entre los dos meses elegidos se vendieron en promedio ${fm(m,0)} unidades por mes. Hoy, en A, el ritmo real es ${fm(i,0)} u por mes.`,
+ pre:'Con el ritmo actual puedes estimar cuántas unidades tendrás vendidas dentro de poco.',
+ dec:i=>i>150?'Crecimiento máximo: refuerza inventario y publicidad ahora.':i>50?'Sigue creciendo: aún conviene invertir, pero con control.':'El mercado se satura: busca un nuevo segmento o producto.'},
+{k:'Ambiente',t:'Temperatura durante un día en un invernadero',xn:'hora',xu:'h',yn:'temperatura',yu:'°C',ru:'°C por h',x0:0,x1:24,a:6,h:4,
+ f:h=>22+7*Math.sin(Math.PI*(h-9)/12),
+ ana:(m,i)=>`En el intervalo la temperatura cambió en promedio ${fm(m)} °C por hora. En A cambia ${fm(i)} °C por hora, ${i>0.2?'va en aumento':i<-0.2?'va en descenso':'está cerca de un máximo o mínimo'}.`,
+ pre:'Con la tendencia actual puedes anticipar la temperatura de las próximas horas.',
+ dec:i=>i>0.8?'Sube rápido: activa ventilación antes de que pase del límite.':i<-0.8?'Baja rápido: prepara calefacción o cubierta térmica.':'Temperatura estable: no hace falta intervenir.'}
+];
+let cur=0,A=2,H=3,anim=null,first=true;
+const W=640,Ht=380,m={l:54,r:16,t:16,b:44};
+let sc,x0,x1,y0,y1;
+const sx=x=>m.l+(x-x0)/(x1-x0)*(W-m.l-m.r);
+const sy=y=>Ht-m.b-(y-y0)/(y1-y0)*(Ht-m.t-m.b);
+const fx=x=>(x-m.l)/(W-m.l-m.r)*(x1-x0)+x0;
+const der=(f,x)=>(f(x+1e-4)-f(x-1e-4))/2e-4;
+const tabs=E('tabs');
+SC.forEach((s,i)=>{const b=document.createElement('button');b.textContent=s.k;b.onclick=()=>pick(i);tabs.appendChild(b)});
+
+function pick(i){
+  stop();cur=i;sc=SC[i];x0=sc.x0;x1=sc.x1;A=sc.a;H=sc.h;
+  let lo=1e9,hi=-1e9;for(let j=0;j<=200;j++){const v=sc.f(x0+(x1-x0)*j/200);lo=Math.min(lo,v);hi=Math.max(hi,v)}
+  const p=(hi-lo)*.1;y0=Math.min(0,lo-p*(lo<0?1:0));y1=hi+p;
+  [...tabs.children].forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
+  E('ttl').textContent=sc.t;E('xn').textContent=sc.xn+' ('+sc.xu+')';
+  E('a').value=(A-x0)/(x1-x0)*1000;E('h').value=H/(x1-x0)*1000;
+  buildSvg();draw();
+  document.querySelectorAll('.three .card,.big').forEach(e=>{e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop')});
+}
+function buildSvg(){
+  let g='<g class="grid ax">';
+  for(let i=0;i<=5;i++){
+    const xv=x0+(x1-x0)*i/5,yv=y0+(y1-y0)*i/5;
+    g+=`<line x1="${sx(xv)}" x2="${sx(xv)}" y1="${m.t}" y2="${Ht-m.b}"/><text x="${sx(xv)}" y="${Ht-m.b+18}" text-anchor="middle">${fm(xv,xv%1?1:0)}</text>`;
+    g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${sy(yv)}" y2="${sy(yv)}"/><text x="${m.l-8}" y="${sy(yv)+4}" text-anchor="end">${fm(yv,yv%1&&(y1-y0)<20?1:0)}</text>`;
+  }
+  g+=`<text x="${W/2}" y="${Ht-6}" text-anchor="middle">${sc.xn} (${sc.xu})</text><text transform="translate(12 ${Ht/2}) rotate(-90)" text-anchor="middle">${sc.yn} (${sc.yu})</text></g>`;
+  let d='';for(let j=0;j<=160;j++){const x=x0+(x1-x0)*j/160;d+=(j?'L':'M')+sx(x).toFixed(1)+' '+sy(sc.f(x)).toFixed(1)}
+  E('svg').innerHTML=`<defs><clipPath id="cp"><rect x="${m.l}" y="${m.t}" width="${W-m.l-m.r}" height="${Ht-m.t-m.b}"/></clipPath></defs>${g}
+  <g clip-path="url(#cp)"><path id="curve" d="${d}"/><line id="tangent"/><line id="secant"/><path id="tri"/></g>
+  <circle id="pA" r="7" fill="var(--tan)" stroke="var(--card)" stroke-width="2.5"/><circle id="pB" r="7" fill="var(--sec)" stroke="var(--card)" stroke-width="2.5"/>
+  <circle id="pP" r="5" fill="none" stroke="var(--tan)" stroke-width="2"/><circle id="pR" r="5" fill="var(--curve)"/>
+  <text id="lA" class="lbl" fill="var(--tan)">A</text><text id="lB" class="lbl" fill="var(--sec)">B</text><text id="lx" class="lbl" fill="var(--sec)"></text><text id="ly" class="lbl" fill="var(--sec)"></text>`;
+  if(first){first=false;const c=E('curve'),L=c.getTotalLength();if(!matchMedia('(prefers-reduced-motion:reduce)').matches){c.style.strokeDasharray=L;c.style.strokeDashoffset=L;c.getBoundingClientRect();c.style.transition='stroke-dashoffset 1.6s ease';c.style.strokeDashoffset=0}}
+}
+function line(id,xa,ya,xb,yb){const l=E(id);l.setAttribute('x1',xa);l.setAttribute('y1',ya);l.setAttribute('x2',xb);l.setAttribute('y2',yb)}
+function ext(p,q,id){ // línea por dos puntos extendida
+  const dx=sx(q[0])-sx(p[0]),dy=sy(q[1])-sy(p[1]);const k=2000/Math.hypot(dx,dy)||0;
+  line(id,sx(p[0])-dx*k,sy(p[1])-dy*k,sx(p[0])+dx*k,sy(p[1])+dy*k)}
+function draw(){
+  const f=sc.f,B=A+H,fa=f(A),fb=f(B);
+  const tmc=(fb-fa)/H,tic=der(f,A);
+  ext([A,fa],[B,fb],'secant');
+  ext([A,fa],[A+1,fa+tic],'tangent');
+  E('tri').setAttribute('d',`M${sx(A)} ${sy(fa)}L${sx(B)} ${sy(fa)}L${sx(B)} ${sy(fb)}`);
+  const at=(i,x,y)=>{E(i).setAttribute('cx',sx(x));E(i).setAttribute('cy',sy(y))};
+  at('pA',A,fa);at('pB',B,fb);
+  E('lA').setAttribute('x',sx(A)-18);E('lA').setAttribute('y',sy(fa)-10);
+  E('lB').setAttribute('x',sx(B)+10);E('lB').setAttribute('y',sy(fb)-10);
+  const lx=E('lx'),ly=E('ly');
+  lx.textContent=H>(x1-x0)*.06?'Δ'+sc.xn.slice(0,1)+' = '+fm(H):'';lx.setAttribute('x',(sx(A)+sx(B))/2-24);lx.setAttribute('y',sy(fa)+(fb>=fa?16:-8));
+  ly.textContent=H>(x1-x0)*.06?'Δ = '+fm(fb-fa):'';ly.setAttribute('x',sx(B)+8);ly.setAttribute('y',(sy(fa)+sy(fb))/2);
+  E('av').textContent=fm(A)+' '+sc.xu;E('hv').textContent=fm(H)+' '+sc.xu;
+  E('tmc').textContent=fm(tmc);E('tic').textContent=fm(tic);E('tmcu').textContent=sc.ru;E('ticu').textContent=sc.ru;
+  let rows='',hh=H;
+  for(let i=0;i<5;i++){const t=(f(A+hh)-fa)/hh;rows+=`<tr class="${i==4?'last':''}"><td>${fm(hh,3)}</td><td>${fm(t,3)}</td><td>${fm(Math.abs(t-tic),3)}</td></tr>`;hh/=3}
+  E('tb').innerHTML=rows;
+  E('ana').textContent=sc.ana(tmc,tic);E('pre').textContent=sc.pre;E('dec1').textContent='Con la tasa instantánea en A:';E('dec').textContent=sc.dec(tic);
+  const dmax=(x1-x0)*.3,d=E('d').value/100*dmax;E('dv').textContent='+'+fm(d)+' '+sc.xu;
+  const pr=fa+tic*d,re=f(A+d);
+  E('pp').textContent=fm(pr)+' '+sc.yu;E('pr').textContent=fm(re)+' '+sc.yu;
+  E('pe').textContent=fm(Math.abs(pr-re))+' '+sc.yu+' ('+fm(Math.abs(pr-re)/Math.abs(re||1)*100,1)+'%)';
+  const inside=A+d<=x1;
+  E('pP').style.display=E('pR').style.display=inside?'':'none';
+  if(inside){at('pP',A+d,pr);at('pR',A+d,re)}
+}
+function setA(v){A=Math.max(x0,Math.min(x1-H,v));E('a').value=(A-x0)/(x1-x0)*1000}
+E('a').oninput=e=>{stop();A=x0+e.target.value/1000*(x1-x0);if(A+H>x1)H=x1-A;E('h').value=H/(x1-x0)*1000;draw()};
+E('h').oninput=e=>{stop();H=Math.max(.01,e.target.value/1000*(x1-x0));if(A+H>x1){A=x1-H;E('a').value=(A-x0)/(x1-x0)*1000}draw()};
+E('d').oninput=draw;
+E('svg').addEventListener('pointerdown',e=>{const r=E('svg').getBoundingClientRect();const x=fx((e.clientX-r.left)/r.width*W);stop();A=Math.max(x0,Math.min(x1-H,x));E('a').value=(A-x0)/(x1-x0)*1000;draw()});
+function stop(){if(anim){cancelAnimationFrame(anim);anim=null;E('play').textContent='▶ Acercar B hacia A'}}
+E('play').onclick=()=>{
+  if(anim){stop();return}
+  const h0=H<(x1-x0)*.2?(x1-x0)*.4:H;if(A+h0>x1)A=x1-h0;E('a').value=(A-x0)/(x1-x0)*1000;
+  const hEnd=(x1-x0)*.002,T=4500,t0=performance.now();E('play').textContent='❚❚ Pausar';
+  const step=t=>{const p=Math.min(1,(t-t0)/T);H=h0*Math.pow(hEnd/h0,p);E('h').value=H/(x1-x0)*1000;draw();
+    if(p<1)anim=requestAnimationFrame(step);else{anim=null;E('play').textContent='▶ Acercar B hacia A'}};
+  anim=requestAnimationFrame(step)};
+E('reset').onclick=()=>pick(cur);
+pick(0);
+</script>
+</body>
+</html>
